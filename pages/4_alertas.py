@@ -39,20 +39,46 @@ if manutencoes:
             data_inicial = datetime.strptime(data_str, "%Y-%m-%d").date()
             data_limite = data_inicial + timedelta(days=periodo * 30)
             dias_faltando = (data_limite - hoje).days
+            dias_total = periodo * 30
         else:
             dias_faltando = 0
+            dias_total = 1
+
+        # progresso km
+        km_usado = km_atual - km_inicial
+        progresso_km = min(max(km_usado / intervalo, 0), 1)
+
+        # progresso dias
+        dias_usados = dias_total - dias_faltando
+        progresso_dias = min(max(dias_usados / dias_total, 0), 1)
 
         st.subheader(item["tipo_manutencao"])
 
         st.write(f"🚗 Veículo: {veiculo['nome']}")
-        st.write(f"KM Atual: {km_atual:.0f} km")
-        st.write(f"Próxima troca: {proxima_troca:.0f} km")
-        st.write(f"Faltam: {km_faltando:.0f} km")
-        st.write(f"Faltam: {dias_faltando} dias")
 
+        st.metric("KM Atual", f"{km_atual:.0f} km")
+        st.metric("Próxima troca", f"{proxima_troca:.0f} km")
+        st.metric("Faltam KM", f"{km_faltando:.0f} km")
+
+        st.progress(progresso_km)
+
+        st.metric("Dias restantes", f"{dias_faltando} dias")
+
+        st.progress(progresso_dias)
+
+        # Qual vence primeiro
+        percentual_km = km_faltando / intervalo if intervalo > 0 else 0
+        percentual_dias = dias_faltando / dias_total if dias_total > 0 else 0
+
+        if percentual_km < percentual_dias:
+            st.warning("⚠️ Vence por quilometragem primeiro")
+        else:
+            st.warning("⚠️ Vence por tempo primeiro")
+
+        # Status geral
         if km_faltando <= 0 or dias_faltando <= 0:
             st.error("❌ Manutenção vencida")
-        elif km_faltando < 1000:
+        elif km_faltando < 1000 or dias_faltando < 30:
             st.warning("⚠️ Próximo da troca")
         else:
             st.success("✅ Em dia")
