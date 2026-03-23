@@ -2,48 +2,45 @@ import streamlit as st
 import sys
 import os
 from datetime import datetime, timedelta
-import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from supabase_config import supabase
 
-st.title("⚠️ Alertas Inteligentes")
+st.title("⚠️ Alertas")
 
-dados = supabase.table("manutencoes").select("*").execute().data
+manutencoes = supabase.table("manutencoes").select("*").execute().data
+veiculos = supabase.table("veiculos").select("*").execute().data
 
-if dados:
+veiculos_dict = {v["id"]: v for v in veiculos}
 
-    hoje = datetime.today().date()
+hoje = datetime.today().date()
 
-    for item in dados:
+for item in manutencoes:
 
-        km_inicial = item["km_inicial"] if item["km_inicial"] else 0
-        km_atual = item["km_atual"] if item["km_atual"] else 0
-        intervalo = item["intervalo_km"] if item["intervalo_km"] else 10000
+    veiculo = veiculos_dict.get(item["veiculo_id"])
 
-        proxima_troca = km_inicial + intervalo
-        km_faltando = proxima_troca - km_atual
+    km_atual = veiculo["km_atual"]
 
-        data_inicial = datetime.strptime(item["data_inicial"], "%Y-%m-%d").date()
-        periodo = item["periodo_meses"] if item["periodo_meses"] else 6
+    km_inicial = item["km_inicial"]
+    intervalo = item["intervalo_km"]
 
-        dias_total = periodo * 30
-        data_limite = data_inicial + timedelta(days=dias_total)
+    proxima_troca = km_inicial + intervalo
+    km_faltando = proxima_troca - km_atual
 
-        dias_faltando = (data_limite - hoje).days
+    data_inicial = datetime.strptime(item["data_inicial"], "%Y-%m-%d").date()
+    periodo = item["periodo_meses"]
 
-        st.subheader(item["tipo_manutencao"])
+    data_limite = data_inicial + timedelta(days=periodo*30)
+    dias_faltando = (data_limite - hoje).days
 
-        st.metric("KM Atual", f"{km_atual:.0f} km")
-        st.metric("Próxima troca", f"{proxima_troca:.0f} km")
-        st.metric("Faltam KM", f"{km_faltando:.0f} km")
+    st.subheader(item["tipo_manutencao"])
 
-        st.metric("Dias restantes", f"{dias_faltando} dias")
+    st.write(f"🚗 Veículo: {veiculo['nome']}")
+    st.write(f"KM Atual: {km_atual}")
+    st.write(f"Faltam: {km_faltando:.0f} km")
+    st.write(f"Faltam: {dias_faltando} dias")
 
-        if km_faltando <= 0 or dias_faltando <= 0:
-            st.error("❌ Manutenção vencida")
-        else:
-            if km_faltando < 1000:
-                st.warning("⚠️ Próximo da troca")
+    if km_faltando <= 0 or dias_faltando <= 0:
+        st.error("Manutenção vencida")
 
-        st.divider()
+    st.divider()
