@@ -2,6 +2,10 @@ import streamlit as st
 from supabase_config import supabase
 import pandas as pd
 
+if "logado" not in st.session_state or not st.session_state.logado:
+    st.warning("Faça login primeiro")
+    st.stop()
+
 st.title("🚗 Cadastro de Veículos")
 
 dados = supabase.table("veiculos").select("*").execute().data
@@ -15,6 +19,7 @@ modelo = st.text_input("Modelo")
 placa = st.text_input("Placa")
 cor = st.text_input("Cor")
 km_atual = st.number_input("KM Atual", value=0.0)
+senha = st.text_input("Senha", type="password")
 
 if st.button("Salvar Veículo"):
     if len(dados) < 5:
@@ -24,7 +29,8 @@ if st.button("Salvar Veículo"):
             "modelo": modelo,
             "placa": placa,
             "cor": cor,
-            "km_atual": km_atual
+            "km_atual": km_atual,
+            "senha": senha
         }).execute()
         st.success("Veículo salvo")
 
