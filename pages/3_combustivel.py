@@ -2,12 +2,17 @@ import streamlit as st
 from supabase_config import supabase
 import pandas as pd
 
+if "logado" not in st.session_state or not st.session_state.logado:
+    st.warning("Faça login primeiro")
+    st.stop()
+
 st.title("⛽ Combustível")
 
 veiculos = supabase.table("veiculos").select("*").execute().data
 lista = [v["nome"] for v in veiculos]
 
-veiculo = st.selectbox("Veículo", lista)
+# veiculo = st.selectbox("Veículo", lista)
+veiculo_id = st.session_state["veiculo_id"]
 
 tipo = st.selectbox("Tipo combustível", [
     "Gasolina",
@@ -23,7 +28,7 @@ km = st.number_input("Quilometragem")
 
 if st.button("Salvar combustível"):
 
-    id_veiculo = [v["id"] for v in veiculos if v["nome"] == veiculo][0]
+    id_veiculo = st.session_state.veiculo_id
 
     supabase.table("combustivel").insert({
         "veiculo_id": id_veiculo,
