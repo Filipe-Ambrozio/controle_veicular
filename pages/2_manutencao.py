@@ -45,7 +45,7 @@ lista = [v["nome"] for v in veiculos]
 veiculo = st.selectbox("Veículo", lista)
 tipo = st.selectbox("Tipo de manutenção", tipos)
 
-km_atual = st.number_input("Quilometragem Atual", value=60079.00)
+
 km_inicial = st.number_input("Quilometragem inicial")
 data_inicial = st.date_input("Data inicial")
 periodo = st.number_input("Periodo em meses", value=6)
