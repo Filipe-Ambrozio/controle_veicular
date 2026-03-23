@@ -42,3 +42,21 @@ if dados:
     if st.button("Excluir veículo"):
         supabase.table("veiculos").delete().eq("id", excluir).execute()
         st.success("Veículo removido")
+
+st.subheader("Atualizar Quilometragem")
+
+if dados:
+
+    lista = {v["nome"]: v["id"] for v in dados}
+
+    veiculo_edit = st.selectbox("Selecionar veículo", list(lista.keys()))
+
+    novo_km = st.number_input("Novo KM")
+
+    if st.button("Atualizar KM"):
+
+        supabase.table("veiculos").update({
+            "km_atual": novo_km
+        }).eq("id", lista[veiculo_edit]).execute()
+
+        st.success("KM atualizado")
