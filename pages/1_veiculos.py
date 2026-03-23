@@ -14,6 +14,7 @@ marca = st.text_input("Marca")
 modelo = st.text_input("Modelo")
 placa = st.text_input("Placa")
 cor = st.text_input("Cor")
+km_atual = st.number_input("KM Atual", value=0.0)
 
 if st.button("Salvar Veículo"):
     if len(dados) < 5:
@@ -22,7 +23,8 @@ if st.button("Salvar Veículo"):
             "marca": marca,
             "modelo": modelo,
             "placa": placa,
-            "cor": cor
+            "cor": cor,
+            "km_atual": km_atual
         }).execute()
         st.success("Veículo salvo")
 
