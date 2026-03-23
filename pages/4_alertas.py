@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from supabase_config import supabase
 
-st.title("⚠️ Alertas")
+st.title("⚠️ Alertas Inteligentes")
 
 manutencoes = supabase.table("manutencoes").select("*").execute().data
 veiculos = supabase.table("veiculos").select("*").execute().data
@@ -15,32 +15,46 @@ veiculos_dict = {v["id"]: v for v in veiculos}
 
 hoje = datetime.today().date()
 
-for item in manutencoes:
+if manutencoes:
 
-    veiculo = veiculos_dict.get(item["veiculo_id"])
+    for item in manutencoes:
 
-    km_atual = veiculo["km_atual"]
+        veiculo = veiculos_dict.get(item["veiculo_id"])
 
-    km_inicial = item["km_inicial"]
-    intervalo = item["intervalo_km"]
+        if not veiculo:
+            continue
 
-    proxima_troca = km_inicial + intervalo
-    km_faltando = proxima_troca - km_atual
+        km_atual = float(veiculo["km_atual"] or 0)
+        km_inicial = float(item["km_inicial"] or 0)
+        intervalo = float(item["intervalo_km"] or 10000)
 
-    data_inicial = datetime.strptime(item["data_inicial"], "%Y-%m-%d").date()
-    periodo = item["periodo_meses"]
+        proxima_troca = km_inicial + intervalo
+        km_faltando = proxima_troca - km_atual
 
-    data_limite = data_inicial + timedelta(days=periodo*30)
-    dias_faltando = (data_limite - hoje).days
+        periodo = int(item["periodo_meses"] or 6)
 
-    st.subheader(item["tipo_manutencao"])
+        data_str = item["data_inicial"]
 
-    st.write(f"🚗 Veículo: {veiculo['nome']}")
-    st.write(f"KM Atual: {km_atual}")
-    st.write(f"Faltam: {km_faltando:.0f} km")
-    st.write(f"Faltam: {dias_faltando} dias")
+        if data_str:
+            data_inicial = datetime.strptime(data_str, "%Y-%m-%d").date()
+            data_limite = data_inicial + timedelta(days=periodo * 30)
+            dias_faltando = (data_limite - hoje).days
+        else:
+            dias_faltando = 0
 
-    if km_faltando <= 0 or dias_faltando <= 0:
-        st.error("Manutenção vencida")
+        st.subheader(item["tipo_manutencao"])
 
-    st.divider()
+        st.write(f"🚗 Veículo: {veiculo['nome']}")
+        st.write(f"KM Atual: {km_atual:.0f} km")
+        st.write(f"Próxima troca: {proxima_troca:.0f} km")
+        st.write(f"Faltam: {km_faltando:.0f} km")
+        st.write(f"Faltam: {dias_faltando} dias")
+
+        if km_faltando <= 0 or dias_faltando <= 0:
+            st.error("❌ Manutenção vencida")
+        elif km_faltando < 1000:
+            st.warning("⚠️ Próximo da troca")
+        else:
+            st.success("✅ Em dia")
+
+        st.divider()
