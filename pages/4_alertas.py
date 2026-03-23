@@ -3,14 +3,23 @@ import sys
 import os
 from datetime import datetime, timedelta
 
+if "logado" not in st.session_state or not st.session_state.logado:
+    st.warning("Faça login primeiro")
+    st.stop()
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from supabase_config import supabase
 
 st.title("⚠️ Alertas Inteligentes")
 
-manutencoes = supabase.table("manutencoes").select("*").execute().data
-veiculos = supabase.table("veiculos").select("*").execute().data
+# manutencoes = supabase.table("manutencoes").select("*").execute().data
+# veiculos = supabase.table("veiculos").select("*").execute().data
 
+veiculo_id = st.session_state["veiculo_id"]
+
+manutencoes = supabase.table("manutencoes").select("*").eq("veiculo_id", veiculo_id).execute().data
+
+veiculos = supabase.table("veiculos").select("*").execute().data
 veiculos_dict = {v["id"]: v for v in veiculos}
 
 hoje = datetime.today().date()
