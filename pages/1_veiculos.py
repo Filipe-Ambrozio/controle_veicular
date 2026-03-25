@@ -8,7 +8,8 @@ if "logado" not in st.session_state or not st.session_state.logado:
 
 st.title("🚗 Cadastro de Veículos")
 
-dados = supabase.table("veiculos").select("*").execute().data
+#dados = supabase.table("veiculos").select("*").execute().data
+dados = supabase.table("veiculos").select("id,nome,marca,modelo,placa,cor,km_atual").execute().data
 
 if len(dados) >= 5:
     st.warning("Máximo de 5 veículos permitido")
